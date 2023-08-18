@@ -1,58 +1,42 @@
-from Testers.conversationalAIAssessor import ConversationalAIAssessor
-from Testers.biEncoderAssesor import BiEncoderAssessor
-import time
-from tqdm import tqdm
-from colorama import Fore
+from src.Tester.conversationalAIAssessor import ConversationalAIAssessor
+from src.Tester.biEncoderAssessor import BiEncoderAssessor
 import pandas as pd
+import os
+from src.Utils.config import Config
 
 class Tester(ConversationalAIAssessor, BiEncoderAssessor):
-    def __init__(self):
-        super(ConversationalAIAssessor).__init_()
-        super(BiEncoderAssessor).__init_()
+    def __init__(self, openai_key: str, testset_path: str, test_type: str, ground_truth_col: str, model_response_col: str, test_name: str):
+        # Checking file extension
+        self.file_extension = testset_path.split(".")[-1].lower()
+        if self.file_extension in Config.ALLOWED_FILE_EXTENSION:
+            if self.file_extension == "csv":
+                testset_df = pd.read_csv(self.testset_path)
+            else:
+                testset_df = pd.read_excel(self.testset_path)
+        else:
+            raise "File should either be XLSX and CSV format."
+        super(ConversationalAIAssessor).__init_(openai_key = openai_key, testset_df = testset_df, ground_truth_col = ground_truth_col, model_response_col = model_response_col)
+        super(BiEncoderAssessor).__init_(testset_df = testset_df, ground_truth_col = ground_truth_col, model_response_col = model_response_col)
+        self.test_type = test_type
+        self.test_name = test_name
     
     def __call__(self):
-        results = []
-        try:
-            testData = self.getTestset()
-            N = len(testData)
-            
-            # Collecting the model responses
-            pbar = tqdm(total=N, desc="Collecting model responses", bar_format="{l_bar}%s{bar:50}%s{r_bar}" % (Fore.GREEN, Fore.RESET), position=0, leave=True)
-            for json_data in testData:
-                start_time = time.time()
-                if self.url == "gpt":
-                    answer = self.gptCaller(
-                        prompt = f"""{json_data["context"]}. {json_data["question"]}"""
-                    )
-                else:
-                    answer = self.apiCaller(
-                        payload={
-                            "context": json_data["context"],
-                            "question": json_data["question"]
-                        }
-                    )
-                end_time = time.time()
-                json_data["model_response"] = answer
-                json_data["time(mins)"] = round((end_time - start_time)/60, 3)
-                results.append(json_data)
-                pbar.update(1)
-
-            # Checking the correctness of the model
-            # pbar = pbar = tqdm(total=N, desc="Checking correctness", bar_format="{l_bar}%s{bar:50}%s{r_bar}" % (Fore.GREEN, Fore.RESET), position=0, leave=True)
-            # for json_data in results:
-            #     json_data["checker"] = self.checkCorrectNess(
-            #         ground_truth = json_data["ground_truth"],
-            #         model_output = json_data["model_response"],
-            #         qType = json_data["qtype"]
-            #     )
-
-            results_df = pd.DataFrame.from_dict(results)
-            results_df.to_excel(self.save_file_path, index = False)
-
-        except KeyboardInterrupt:
-            print("[INFO Saving the file]")
-            # Saving the results
-            results_df = pd.DataFrame.from_dict(results)
-            results_df.to_excel(self.save_file_path, index = False)
+        """
         
-        return self.save_file_path
+        Perform testing based on test_type
+        
+        """
+        if self.test_type == "cat":
+            self.run_ca_eval()
+        elif self.test_type == "bet":
+            self.run_biencoder_eval()
+        else:
+            self.run_ca_eval()
+            self.run_biencoder_eval()
+
+        # Saving the results in results directory
+        if not os.path.exists("./results"):
+            os.mkdir("./results")
+
+        filepath = f"./results/{self.test_name}.{self.file_extension}"
+        print(f"Saving results to {filepath}")
