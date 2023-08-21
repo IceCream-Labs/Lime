@@ -7,13 +7,23 @@ import time
 import pandas as pd
 
 
-class ConversationalAIAssessor:
-    def __init__(self, openai_key: str, testset_df: pd.DataFrame, ground_truth_col: str, model_response_col: str):
-        self.openai_key = openai_key, 
-        self.testset_df = testset_df, 
-        self.ground_truth_col = ground_truth_col, 
+class LanguageModelAssessor:
+    def __init__(self, 
+        openai_key: str, 
+        testset_df: pd.core.frame.DataFrame, 
+        ground_truth_col: str, 
+        model_response_col: str,
+        query_col: str,
+        context_col: str
+    ):
+        self.openai_key = openai_key
+        self.testset_df = testset_df
+        self.ground_truth_col = ground_truth_col
         self.model_response_col = model_response_col
-   
+        openai.api_key = openai_key
+        self.query_col = query_col
+        self.context_col = context_col
+                    
 
     @staticmethod
     def gptCaller(prompt: str):
@@ -47,19 +57,20 @@ class ConversationalAIAssessor:
                 if 'bill' in error:
                     return response
 
-    def run_ca_eval(self):
+    def run_lma_eval(self):
         """
         
         Method to run the conversational AI Evaluation
         
         """
-        pbar = tqdm(total=len(self.testset_df), desc="Conversation AI Evaluation", bar_format="{l_bar}%s{bar:50}%s{r_bar}" % (Fore.CYAN, Fore.RESET), position=0, leave=True)
+        N = len(self.testset_df)
+        pbar = tqdm(total=N, desc="Language Model Evaluation", bar_format="{l_bar}%s{bar:50}%s{r_bar}" % (Fore.CYAN, Fore.RESET), position=0, leave=True)
         for idx, row in self.testset_df.iterrows():
-            context = row["context"]
-            question = row["question"]
+            context = row[self.context_col]
+            question = row[self.query_col]
             answer = row[self.model_response_col]
             prompt = Config.CA_PROMPT.format(context = context, question = question, answer = answer).strip()
-            score_explanation = ConversationalAIAssessor.gptCaller(prompt)
+            score_explanation = LanguageModelAssessor.gptCaller(prompt)
             self.testset_df.loc[idx, "ca_score"] = score_explanation
             pbar.update(1)
 

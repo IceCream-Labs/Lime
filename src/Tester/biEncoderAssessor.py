@@ -16,7 +16,8 @@ class BiEncoderAssessor:
         Method to run Bi Encoder evaluation
 
         """        
-        pbar = tqdm(total=len(self.testset_df), desc="BiEncoder Evaluation", bar_format="{l_bar}%s{bar:50}%s{r_bar}" % (Fore.CYAN, Fore.RESET), position=0, leave=True)
+        N = len(self.testset_df)
+        pbar = tqdm(total=N, desc="BiEncoder Evaluation", bar_format="{l_bar}%s{bar:50}%s{r_bar}" % (Fore.CYAN, Fore.RESET), position=0, leave=True)
         for idx, row in self.testset_df.iterrows():
             ground_truth = row[self.ground_truth_col]
             model_response = row[self.model_response_col]
