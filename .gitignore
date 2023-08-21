@@ -1,2 +1,4 @@
 Test
 results
+src/Tester/__pycache__/
+src/Utils/__pycache__/
