@@ -39,7 +39,7 @@ class LanguageModelAssessor:
             if response:
                 break
             try:
-                system_msg = ""
+                system_msg = Config.CA_SYSTEM_PROMPT.strip()
                 response = openai.ChatCompletion.create(
                     model="gpt-4", 
                     messages = [
@@ -66,7 +66,6 @@ class LanguageModelAssessor:
         
         """
         score = float(0)
-        prompt = Config.CA_SYSTEM_PROMPT + "\n" + prompt
         model_response = LanguageModelAssessor.gptCaller(prompt)
         try:
             json_response = json.loads(model_response)
