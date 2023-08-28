@@ -5,6 +5,7 @@ import openai
 from src.Utils.config import Config
 import time
 import pandas as pd
+import json
 
 
 class LanguageModelAssessor:
@@ -29,7 +30,7 @@ class LanguageModelAssessor:
     def gptCaller(prompt: str):
         """
 
-        Helper function to call openai Turbo
+        Method to call openai Turbo
 
         """
         retries = 5
@@ -38,10 +39,9 @@ class LanguageModelAssessor:
             if response:
                 break
             try:
-                system_msg = Config.CA_SYSTEM_PROMPT
-                system_msg = system_msg.strip()
+                system_msg = ""
                 response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo", 
+                    model="gpt-4", 
                     messages = [
                         {"role": "system", "content" : system_msg},
                         {"role": "user", "content" : prompt},
@@ -57,6 +57,28 @@ class LanguageModelAssessor:
                 if 'bill' in error:
                     return response
 
+
+    @staticmethod
+    def getScore(prompt: str):
+        """
+        
+        Method to parse the Language Model response
+        
+        """
+        score = float(0)
+        prompt = Config.CA_SYSTEM_PROMPT + "\n" + prompt
+        model_response = LanguageModelAssessor.gptCaller(prompt)
+        try:
+            json_response = json.loads(model_response)
+            if 'score' in json_response.keys():
+                score = float(json_response["score"])
+            elif 'expert' in json_response.keys():
+                score = float(json_response['expert']["score"])
+        except Exception as E:
+            pass
+            
+        return score if 0 <= score and score <= 100 else 0.0
+
     def run_lma_eval(self):
         """
         
@@ -70,8 +92,8 @@ class LanguageModelAssessor:
             question = row[self.query_col]
             answer = row[self.model_response_col]
             prompt = Config.CA_PROMPT.format(context = context, question = question, answer = answer).strip()
-            score_explanation = LanguageModelAssessor.gptCaller(prompt)
-            self.testset_df.loc[idx, "ca_score"] = score_explanation
+            score_ = LanguageModelAssessor.getScore(prompt)
+            self.testset_df.loc[idx, "ca_score"] = score_
             pbar.update(1)
 
             

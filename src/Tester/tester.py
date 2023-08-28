@@ -43,9 +43,7 @@ class Tester(LanguageModelAssessor, BiEncoderAssessor):
             ground_truth_col=ground_truth_col,
             model_response_col=model_response_col
         )
-        
-        
-    
+
     def __call__(self):
         """
         
@@ -69,3 +67,22 @@ class Tester(LanguageModelAssessor, BiEncoderAssessor):
         filepath = f"./results/{self.test_name}.{self.file_extension}"
         self.testset_df.to_excel(filepath, index = False)
         print(f"Saving results to {filepath}")
+
+
+        # Printing results
+        ca_score, biencoder_score = "NA", "NA"
+        if "ca_score" in self.testset_df.columns:
+            ca_score = sum(self.testset_df["ca_score"])/len(self.testset_df)
+        if "biencoder_score" in self.testset_df.columns:
+            biencoder_score = sum(self.testset_df["biencoder_score"])/len(self.testset_df)
+        
+        ca_score = "NA" if ca_score == "NA" else round(ca_score, 3)
+        biencoder_score = "NA" if biencoder_score == "NA" else round(biencoder_score, 3)
+        print(f"""
+        -----------------------------------------------------
+        |   Language Model Score  |    BiEncoder Score      |
+        -----------------------------------------------------
+        |           {ca_score}    |         {biencoder_score}              |      
+        -----------------------------------------------------
+                    
+        """)
