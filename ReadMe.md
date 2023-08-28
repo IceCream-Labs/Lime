@@ -30,4 +30,4 @@ In the context of evaluating such models trained for domain-specific tasks, we i
 <h2 id="how-to-use-it">How to use it 🤔?</h2>
 
 - Once you have done with all the steps mentioned in [Installation guide 🦮](#installation-guide) you are good to go.
-- Check out [this notebook](), it contains all the commands that you can perform for evaluation.
+- Check out [this notebook](https://github.com/IceCream-Labs/Lime/blob/main/Test/runTest.ipynb), it contains all the commands that you can perform for evaluation.
