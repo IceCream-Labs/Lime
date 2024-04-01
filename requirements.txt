@@ -5,3 +5,4 @@ openai
 pandas
 sentence-transformers==2.2.2
 sentencepiece==0.1.99
+pillow>=10.3.0 # not directly required, pinned by Snyk to avoid a vulnerability
