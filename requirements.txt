@@ -3,5 +3,5 @@ colorama
 openpyxl
 openai
 pandas
-sentence-transformers==2.2.2
+sentence-transformers==3.1.0
 sentencepiece==0.1.99
